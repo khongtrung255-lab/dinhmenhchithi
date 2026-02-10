@@ -1,0 +1,170 @@
+import { klona as t } from "https://testingcf.jsdelivr.net/npm/klona/+esm";
+const e = (t, e, a) => z.coerce.number().prefault(t).transform(t => _.clamp(t, e, a)),
+    a = (t, e) => _.fromPairs(_.take(_.toPairs(t), e)),
+    r = z.object({ "introduction": z.string().prefault(""), "target": z.string().prefault(""), "reward": z.string().prefault("") }).prefault({}),
+    s = z.object({ "quality": z.string().prefault(""), "type": z.string().prefault(""), "tags": z.array(z.string()).prefault([]).transform(t => _.uniq(t)).optional(), "effect": z.record(z.string(), z.string()).prefault({}), "description": z.string().prefault("") }),
+    n = s.extend({ "position": z.string().prefault("") }),
+    o = s.extend({ "consumption": z.string().prefault("") }).transform(t => _.pick(t, ["quality", "type", "consumption", "tags", "effect", "description"])),
+    i = z.object({ "type": z.enum(["Buff", "Debuff", "Special"]).prefault("Buff"), "effect": z.string().prefault(""), "stacks": z.coerce.number().prefault(1), "time_remaining": z.string().prefault(""), "source": z.string().prefault("") }).prefault({}),
+    l = s.extend({ "quantity": z.coerce.number().prefault(1) }).transform(t => _.pick(t, ["quality", "type", "quantity", "tags", "effect", "description"])),
+    u = z.object(_.mapValues({ "strength": 0, "agility": 0, "constitution": 0, "intelligence": 0, "spirit": 0 }, () => z.coerce.number().prefault(0))).prefault({}),
+    c = z.object({ "is_active": z.boolean().prefault(!1), "elements": z.record(z.string(), z.record(z.string(), z.string())).prefault({}), "authority": z.record(z.string(), z.record(z.string(), z.string())).prefault({}), "laws": z.record(z.string(), z.record(z.string(), z.string())).prefault({}), "god_rank": z.string().prefault(""), "god_realm": z.object({ "name": z.string().prefault(""), "description": z.string().prefault("") }).prefault({}) }).prefault({}).transform(t => {
+        const e = _.size(t.laws),
+            r = _.size(t.authority),
+            s = t.god_realm?.name ? Number.POSITIVE_INFINITY : t.god_rank ? 2 : 1;
+        return e > 0 ? { ...t, "elements": {}, "authority": {}, "laws": a(t.laws, s) } : r > 0 ? { ...t, "elements": {}, "authority": a(t.authority, 1), "laws": a(t.laws, s) } : { ...t, "elements": a(t.elements, 3), "authority": a(t.authority, 1), "laws": {} }
+    }),
+    p = z.object({ "level": e(1, 1, 25), "life_tier": z.string().prefault(""), "race": z.string().prefault(""), "identity": z.array(z.string()).prefault([]).transform(t => _.uniq(t)), "profession": z.array(z.string()).prefault([]).transform(t => _.uniq(t)), "attributes": u, "equipment": z.record(z.string(), n).prefault({}), "skills": z.record(z.string(), o).prefault({}), "path_to_godhood": c }),
+    d = z.object({ ...p.shape, "total_exp": z.coerce.number().prefault(0), "exp_to_level_up": z.union([z.coerce.number().prefault(120), z.literal("MAX")]), "adventurer_rank": z.string().prefault("Chưa xếp hạng"), "hp": z.coerce.number().prefault(0), "max_hp": z.coerce.number().prefault(0), "mp": z.coerce.number().prefault(0), "max_mp": z.coerce.number().prefault(0), "stamina": z.coerce.number().prefault(0), "max_stamina": z.coerce.number().prefault(0), "attribute_points": z.coerce.number().prefault(0), "inventory": z.record(z.string(), l).prefault({}).transform(t => _.pickBy(t, t => t.quantity > 0)), "money": z.coerce.number().prefault(0).transform(Math.round), "status_effects": z.record(z.string(), i).prefault({}) }).prefault({}).transform(t => {
+        const e = { ...t, "exp_to_level_up": t.level >= 25 ? "MAX" : t.exp_to_level_up, "hp": _.clamp(t.hp, 0, t.max_hp), "mp": _.clamp(t.mp, 0, t.max_mp), "stamina": _.clamp(t.stamina, 0, t.max_stamina) };
+        return _.pick(e, ["race", "identity", "profession", "life_tier", "level", "total_exp", "exp_to_level_up", "adventurer_rank", "attribute_points", "attributes", "max_hp", "hp", "max_mp", "mp", "max_stamina", "stamina", "status_effects", "money", "inventory", "equipment", "skills", "path_to_godhood"])
+    }),
+    f = z.record(z.string(), z.object({ ...p.shape, "is_present": z.boolean().prefault(!1), "personality": z.string().prefault(""), "likes": z.string().prefault(""), "appearance": z.string().prefault(""), "clothing": z.string().prefault(""), "fated_contract": z.boolean().prefault(!1), "favorability": e(0, -100, 100), "inner_thoughts": z.string().prefault(""), "background_story": z.string().prefault("") }).prefault({}).transform(t => _.pick(t, ["is_present", "race", "identity", "profession", "life_tier", "personality", "likes", "appearance", "clothing", "level", "attributes", "equipment", "skills", "path_to_godhood", "fated_contract", "favorability", "inner_thoughts", "background_story"]))).prefault({}),
+    g = z.object({ "astaria_express": z.object({ "faction_news": z.string().prefault(""), "divine_traces": z.string().prefault(""), "military_actions": z.string().prefault(""), "economic_artery": z.string().prefault(""), "disaster_warning": z.string().prefault("") }).prefault({}), "tavern_noticeboard": z.object({ "high_bounty": z.string().prefault(""), "adventure_discoveries": z.string().prefault(""), "monster_movements": z.string().prefault(""), "most_wanted": z.string().prefault(""), "treasure_rumors": z.string().prefault("") }).prefault({}), "afternoon_tea": z.object({ "social_anecdotes": z.string().prefault(""), "distant_vision": z.string().prefault(""), "destiny_ripples": z.string().prefault(""), "encounter_omens": z.string().prefault("") }).prefault({}) }),
+    m = z.object({ "events": z.record(z.any(), z.any()).prefault({}), "world": z.object({ "time": z.string().prefault(""), "location": z.string().prefault("") }).prefault({}), "quest_list": z.record(z.string(), r).prefault({}), "protagonist": d.prefault({}), "destiny_system": z.object({ "destiny_points": (b = 0, h = 0, z.coerce.number().prefault(b).transform(t => Math.max(Math.round(t), h))), "relationship_list": f }).prefault({}), "news": g.prefault({}) });
+var b, h;
+const v = ["Nhận điểm thuộc tính", "Tăng cấp độ", "NPC tăng cấp", "Chủng tộc đồng hành", "Chủng tộc nhân vật chính", "Địa điểm hiện tại", "Thời gian hiện tại", "Gợi ý sự kiện"],
+    y = (t, e, a) => _.get(t, e, a),
+    C = t => { const e = _.map(t, ({ id: t, content: e, position: a = "none", depth: r = 0, role: s = "system" }) => ((t, e, a) => { const { position: r = "none", depth: s = 0, role: n = "system" } = a ?? {}; return { id: t, content: e, position: r, depth: s, role: n, should_scan: !0 } })(t, e, { position: a, depth: r, role: s })); injectPrompts(e) },
+    A = t => (...e) => { try { const a = t(...e); return a instanceof Promise ? a.catch(e => { throw console.error(`[Lỗi Script] ${t.name || "vô danh"}:`, e), e }) : a } catch (a) { throw console.error(`[Lỗi Script] ${t.name || "vô danh"}:`, a), a } },
+    E = { 5: { attributes: 1, tier: "Giai đoạn 2/Trụ cột" }, 9: { attributes: 1, tier: "Giai đoạn 3/Tinh anh" }, 13: { attributes: 1, tier: "Giai đoạn 4/Sử thi" }, 17: { attributes: 1, tier: "Giai đoạn 5/Truyền thuyết" }, 21: { attributes: 1, tier: "Giai đoạn 6/Thần thoại" }, 25: { attributes: 1, tier: "Giai đoạn 7/Đăng thần" } },
+    N = { 0: 0, 1: 120, 2: 360, 3: 720, 4: 1200, 5: 2400, 6: 3840, 7: 5520, 8: 7440, 9: 11940, 10: 16940, 11: 22440, 12: 28440, 13: 38840, 14: 50040, 15: 62040, 16: 74840, 17: 100340, 18: 127340, 19: 155840, 20: 185840, 21: 236240, 22: 289040, 23: 344240, 24: 401840, 25: "MAX" },
+    P = 1, j = 13, x = 25, I = ["strength", "agility", "constitution", "intelligence", "spirit"],
+    L = t => E[t],
+    M = t => { const e = _.chain(E).toPairs().map(([t, e]) => ({ level: Number(t), data: e })).filter(({ level: e }) => t >= e).value(), a = _.maxBy(e, "level"); return a?.data.tier ?? "Giai đoạn 1/Bình thường" },
+    O = t => _.get(N, t, "MAX"),
+    V = t => t >= x,
+    k = [12, 16, 20, 24],
+    U = "Đăng Thần · Khởi Minh Chi Giai",
+    w = "Đăng Thần · Chú Quyền Chi Nghi",
+    G = "Đăng Thần · Định Luật Thệ Ước",
+    D = "Đăng Thần · Nghi Thức Đăng Thần",
+    S = "Đăng Thần · Thần Quốc Sơ Lập",
+    F = { [U]: { "introduction": "Cấp độ đã khóa, không thể nhận kinh nghiệm, cần thỏa mãn điều kiện: Thu được ít nhất 1 Yếu tố.", "target": "Dùng một mảnh Yếu tố để thắp lên ngọn lửa Đăng Thần, để Trường Giai đáp lại tên bạn.", "reward": "Trường Giai bắt đầu mở ra, Thần Hỏa cộng hưởng cùng Yếu tố." }, [w]: { "introduction": "Cấp độ đã khóa, không thể nhận kinh nghiệm, cần thỏa mãn điều kiện: Dung hợp 3 Yếu tố thành 1 Quyền năng.", "target": "Ba Yếu tố quy về một, tôi luyện thành Quyền năng duy nhất.", "reward": "Quyền năng thành hình, vạn lực quy vị về bạn." }, [G]: { "introduction": "Cấp độ đã khóa, không thể nhận kinh nghiệm, cần thỏa mãn điều kiện: Dùng Quyền năng dung hợp Pháp tắc Nguyên chất, đúc thành Pháp tắc.", "target": "Tìm kiếm Pháp tắc Nguyên chất, hợp nhất cùng Quyền năng, thắp sáng chân danh Pháp tắc.", "reward": "Pháp tắc ngưng tụ, trật tự cúi đầu trước bạn." }, [D]: { "introduction": "Cấp độ đã khóa, không thể nhận kinh nghiệm, cần thỏa mãn điều kiện: Nhận được Thần vị.", "target": "Thực hiện lễ Đăng Thần, xác lập Thần vị.", "reward": "Thần vị hứa khả, tôn danh khắc vào vòm trời." }, [S]: { "introduction": "Điều kiện hoàn thành: Thiết lập Thần quốc.", "target": "Ban tên cho Thần quốc, khiến nó đứng vững giữa muôn giới.", "reward": "Thần quốc sơ lập, xiềng xích Pháp tắc từ đây giải trừ." } },
+    q = /^༺.+༻$/,
+    T = t => _.filter(_.keys(t), e => ((t, e) => { if (!q.test(String(e))) return !1; const a = y(t, "tags", []); return Array.isArray(a) && a.includes("Pháp tắc Nguyên chất") })(y(t, e, {}), String(e))),
+    R = t => T(t).length > 0,
+    B = t => { const e = (t => { const e = Number(y(t, "exp_to_level_up", 0)); return Number.isFinite(e) ? e : null })(t); return null !== e && y(t, "total_exp", 0) >= e },
+    X = (t, e) => { _.set(t, e, F[e]) },
+    W = (t, e) => { _.has(t, e) && _.unset(t, e) },
+    Y = t => ({ elementCount: _.size(y(t, "elements", {})), powerCount: _.size(y(t, "authority", {})), lawCount: _.size(y(t, "laws", {})), hasGodPosition: !!y(t, "god_rank", ""), hasGodNationName: !!y(t, "god_realm.name", "") }),
+    H = (t, e) => { if (!k.includes(t)) return !0; const a = y(e, "stat_data.protagonist", {}), r = y(a, "path_to_godhood", {}), { elementCount: s, powerCount: n, lawCount: o, hasGodPosition: i } = Y(r); switch (t) { case 12: return s > 0; case 16: return n > 0; case 20: return o > 0; case 24: return o > 0 && i; default: return !0 } },
+    J = (t, e) => {
+        const a = y(t, "stat_data.protagonist", {}),
+            r = y(t, "stat_data.quest_list", {}),
+            s = y(a, "path_to_godhood", {}),
+            { elementCount: n, powerCount: o, lawCount: i, hasGodPosition: l, hasGodNationName: u } = Y(s),
+            c = Number(y(a, "level", 1)),
+            p = B(a),
+            d = y(a, "inventory", {}),
+            f = T(d),
+            g = f.length > 0,
+            z = y(e ?? {}, "stat_data.protagonist.path_to_godhood", {}),
+            m = _.size(y(z, "laws", {})),
+            b = y(e ?? {}, "stat_data.protagonist.inventory", {}),
+            h = R(b);
+        20 === c && i > 0 && !g && !h && _.set(a, "path_to_godhood.laws", {});
+        const v = c >= j || 12 === c && p;
+        _.set(a, "path_to_godhood.is_active", y(s, "is_active", !1) || v), 12 === c && p && 0 === n ? X(r, U) : W(r, U), 16 === c && p && 3 === n && 0 === o ? X(r, w) : W(r, w), 20 === c && p && o >= 1 && 0 === i ? X(r, G) : W(r, G), 24 === c && p && i >= 1 && !l ? X(r, D) : W(r, D), 25 === c && i >= 2 && !u ? X(r, S) : W(r, S), 0 === m && i > 0 && ((t, e) => { 1 === e.length && _.forEach(e, e => { _.unset(t, e) }) })(d, f), _.set(t, "date.ascensionLawReady", R(d))
+    },
+    K = { deathCount: 0, maxCurrencyDebt: 0, bankruptcyCount: 0, illegalLevelUpId: [], totalFPGained: 0 },
+    Q = t => { const e = y(t, "date.log", null); return e || { ...K } },
+    Z = (t, e) => {
+        if (!_.has(e, "stat_data") || !_.has(t, "stat_data")) return;
+        const a = Q(t); ((t, e, a) => { if (!_.has(e, "stat_data.protagonist.hp")) return; const r = y(t, "stat_data.protagonist.hp", 1); y(e, "stat_data.protagonist.hp", 1) > 0 && r <= 0 && a.deathCount++ })(t, e, a), ((t, e) => { const a = y(t, "stat_data.protagonist.money", 0); if (a < 0) { const t = Math.abs(a); t > e.maxCurrencyDebt && (e.maxCurrencyDebt = t) } })(t, a), ((t, e, a) => { if (!_.has(e, "stat_data.protagonist.money")) return; const r = y(t, "stat_data.protagonist.money", 0); y(e, "stat_data.protagonist.money", 0) > 0 && r <= 0 && a.bankruptcyCount++ })(t, e, a), ((t, e, a) => { if (!_.has(e, "stat_data.destiny_system.destiny_points")) return; const r = y(t, "stat_data.destiny_system.destiny_points", 0), s = y(e, "stat_data.destiny_system.destiny_points", 0); if (r > s) { const t = r - s; a.totalFPGained += t } })(t, e, a), insertOrAssignVariables({ date: { log: { deathCount: a.deathCount, maxCurrencyDebt: a.maxCurrencyDebt, bankruptcyCount: a.bankruptcyCount, totalFPGained: a.totalFPGained } } }, { type: "message" })
+    },
+    tt = (t, e) => {
+        const a = y(t, "stat_data.protagonist", {}),
+            r = _.has(e, "stat_data.protagonist.level"),
+            s = y(e, "stat_data.protagonist.level", 1),
+            n = getLastMessageId() <= 2;
+        if (J(t, e), !n && r && s < a.level) {
+            const t = Number(y(a, "exp_to_level_up", 0));
+            Number.isFinite(t) && Number(y(a, "total_exp", 0)) >= t && a.level === s + 1 ? _.set(a, "level", s) : (_.set(a, "level", s), (() => { const t = getVariables({ type: "message" }), e = Q(t), a = getLastMessageId(); e.illegalLevelUpId.includes(a) || e.illegalLevelUpId.push(a), insertOrAssignVariables({ date: { log: { illegalLevelUpId: e.illegalLevelUpId } } }, { type: "message" }) })(), toastr.warning("Cấp độ bị AI tăng bất hợp pháp, vui lòng kiểm tra cập nhật biến số"))
+        }
+        if (_.set(a, "exp_to_level_up", O(a.level)), a.level > 0) { const t = O(a.level - 1); a.total_exp < t && _.set(a, "total_exp", t) }
+        _.set(a, "life_tier", M(a.level))
+    },
+    et = {},
+    at = t => {
+        const e = y(t, "stat_data.world.location", "Không rõ"),
+            a = y(t, "stat_data.world.time", "Không rõ"),
+            r = y(t, "stat_data.protagonist.race", "Không rõ"),
+            s = (t => _.chain(t).pickBy(t => t?.is_present).map(t => t?.race).filter(t => !_.isEmpty(t)).value())(y(t, "stat_data.destiny_system.relationship_list", et));
+        C([{ id: "Chủng tộc đồng hành", content: s.join(", "), position: "none", depth: 0, role: "system" }, { id: "Chủng tộc nhân vật chính", content: r, position: "none", depth: 0, role: "system" }, { id: "Địa điểm hiện tại", content: e, position: "none", depth: 0, role: "system" }, { id: "Thời gian hiện tại", content: a, position: "none", depth: 0, role: "system" }])
+    };
+function rt() { const t = getVariables({ type: "message" }), e = t.date?.log ?? K, a = [`☠️ Số lần tử vong: ${e.deathCount}`, `💰 Nợ tiền tệ tối đa: ${e.maxCurrencyDebt} đồng`, `📉 Số lần phá sản: ${e.bankruptcyCount}`, `⚠️ Số lần AI tăng cấp bất hợp pháp: ${e.illegalLevelUpId.length}`]; toastr.success(a.join("\n"), "“Thành tựu”", { timeOut: 1e4 }) }
+const st = { event: { cache: "", completed_events: [] }, npcs: {}, npcLevelUpWithPlayer: !0, requiresContractForExp: !0, ascensionLawReady: !1, log: K },
+    nt = (e, a) => {
+        insertVariables({ date: st }, { type: "message" });
+        const r = m.safeParse(e.stat_data);
+        var s;
+        r.success || console.error("[Mệnh Định Chi Thi] stat_data kiểm tra thất bại", r.error), e.stat_data = (s = r.success ? r.data : e.stat_data, t(s));
+        const n = _.get(e, "date", st),
+            o = _.get(a, "date", st),
+            i = { stat_data: e.stat_data, date: n },
+            l = { stat_data: a.stat_data, date: o };
+        uninjectPrompts([...v]), tt(i, l), ((t, e) => {
+            const a = y(t, "stat_data.protagonist", {}),
+                r = y(e, "stat_data.protagonist.level", a.level);
+            let s = !1;
+            for (; a.total_exp >= Number(a.exp_to_level_up) && !V(a.level);) {
+                if (!H(a.level, t)) { _.set(a, "total_exp", Number(a.exp_to_level_up)); break }
+                _.set(a, "level", a.level + 1), _.set(a, "exp_to_level_up", O(a.level)), a.level % P === 0 && (_.set(a, "attribute_points", y(a, "attribute_points", 0) + 1), s = !0);
+                const e = L(a.level); e && (_.forEach(I, t => { const r = y(a, `attributes.${t}`, 0); _.set(a, `attributes.${t}`, r + e.attributes) }), _.set(a, "life_tier", e.tier))
+            }
+            if (a.level > r) { const e = { character: { fromLevel: r, toLevel: a.level, gainedAP: s } }, n = y(t, "date.levelUp", {}); n.npcs && (e.npcs = n.npcs), insertOrAssignVariables({ date: { levelUp: e } }, { type: "message" }) }
+        })(i, l), ((t, e) => {
+            const a = y(t, "stat_data.destiny_system.relationship_list", {}),
+                r = y(t, "date.requiresContractForExp", !0); if (!y(t, "date.npcLevelUpWithPlayer", !0)) return;
+            const s = y(t, "date.npcs", {}),
+                n = y(t, "stat_data.protagonist.total_exp", 0),
+                o = n - y(e, "stat_data.protagonist.total_exp", n),
+                i = getLastMessageId() <= 3;
+            _.forEach(a, (t, e) => { s[e] || _.set(s, e, { level: t.level, exp: 0, required_exp: O(t.level) }) }), _.forEach(_.keys(s), t => { a[t] || _.unset(s, t) });
+            const l = []; if (_.forEach(s, (t, s) => {
+                const n = a[s]; if (!n) return;
+                const u = y(e, `stat_data.destiny_system.relationship_list.${s}.level`, void 0),
+                    c = "number" != typeof u || u !== n.level;
+                _.set(t, "level", n.level), _.set(t, "required_exp", O(t.level));
+                const p = t.level > 1 ? N[t.level - 1] : 0;
+                c ? "number" == typeof p && _.set(t, "exp", p) : t.level > 1 && "number" == typeof p && t.exp < p && _.set(t, "exp", p);
+                const d = !i && !c;
+                d && n.is_present && o > 0 && (!r || n.fated_contract) && _.set(t, "exp", t.exp + o);
+                const f = n.level;
+                for (; d && t.exp >= t.required_exp && !V(t.level);) _.set(t, "level", t.level + 1), _.set(t, "required_exp", O(t.level));
+                n.level < t.level && (l.push(`${s} từ LV${f} thăng lên LV${t.level}`), _.set(n, "level", t.level), _.set(n, "life_tier", M(t.level)))
+            }), l.length > 0) { const e = { ...y(t, "date.levelUp", {}), npcs: l }; insertOrAssignVariables({ date: { npcs: s, levelUp: e } }, { type: "message" }) } else insertOrAssignVariables({ date: { npcs: s } }, { type: "message" })
+        })(i, l), (t => {
+            uninjectPrompts(["Sự kiện đã hoàn thành"]);
+            const e = y(t, "stat_data.events.is_open", !1),
+                a = y(t, "stat_data.events.is_ended", !1),
+                r = y(t, "stat_data.events.title", ""),
+                s = y(t, "stat_data.events.phase", ""),
+                n = y(t, "stat_data.events.completed_events", []);
+            if (insertOrAssignVariables({ date: { event: { completed_events: n } } }, { type: "message" }), e && insertOrAssignVariables({ date: { event: { cache: `Sự kiện hiện tại là ${r}, bước hiện tại là ${s}` } } }, { type: "message" }), a) {
+                uninjectPrompts(["Sự kiện", "Gợi ý sự kiện"]);
+                const e = [...n, `Đã hoàn thành sự kiện ${r}`],
+                    a = y(t, "stat_data.events", null);
+                _.isNil(a) || (_.set(a, "completed_events", e), _.set(a, "title", ""), _.set(a, "phase", ""), _.set(a, "is_ended", !1), _.set(a, "is_open", !1)), deleteVariable("date.event.cache", { type: "message" })
+            }
+        })(i), Z(i, l)
+    },
+    ot = () => {
+        const t = getVariables({ type: "message", message_id: -2 }); at(t), (t => {
+            const e = t.date.event.completed_events,
+                a = [];
+            e.length > 0 && a.push({ id: "Sự kiện đã hoàn thành", content: e.join("; "), position: "none", depth: 0, role: "system" });
+            const r = t.date.event.cache;
+            _.isNil(r) || _.isEmpty(r) || (a.push({ id: "Sự kiện", content: r, position: "none", depth: 0, role: "system" }), a.push({ id: "Gợi ý sự kiện", content: "（QUAN TRỌNG: Sự kiện cốt truyện hiện tại đang diễn ra, bạn phải phát triển cốt truyện theo nội dung trong <event>, không được đi quá xa khỏi sự kiện cốt truyện）", position: "in_chat", depth: 0, role: "system" })), a.length > 0 && C(a)
+        })(t), (t => {
+            const e = y(t, "date.levelUp", null); if (!e) return;
+            const a = []; if (e.character) {
+                const { fromLevel: t, toLevel: r, gainedAP: s } = e.character;
+                a.push({ id: "Tăng cấp độ", content: `core_system: Cấp độ của {{user}} đã thăng từ ${t} lên ${r}`, position: "in_chat", depth: 0, role: "system" }), s && a.push({ id: "Nhận điểm thuộc tính", content: "core_system: {{user}} đã lên cấp, nhận được 1 điểm thuộc tính. Hướng dẫn {{user}} sử dụng điểm thuộc tính", position: "in_chat", depth: 0, role: "system" })
+            }
+            e.npcs && e.npcs.length > 0 && a.push({ id: "NPC tăng cấp", content: `core_system: ${e.npcs.join("; ")}`, position: "in_chat", depth: 0, role: "system" }), a.length > 0 && C(a), insertOrAssignVariables({ date: { levelUp: null } }, { type: "message", message_id: -2 })
+        })(t)
+    },
+    it = async () => { await waitGlobalInitialized("Mvu"), eventOn(Mvu.events.VARIABLE_UPDATE_ENDED, A(nt)), eventOn(tavern_events.GENERATION_AFTER_COMMANDS, ot), eventOn(tavern_events.MESSAGE_SENT, ot), eventOn(tavern_events.MESSAGE_UPDATED, ot), eventOn(getButtonEvent("Xem thành tựu"), rt), console.log("[Mệnh Định Chi Thi] Script đã tải ฅ'ω'ฅ"), toastr.success("[Mệnh Định Chi Thi] Script đã tải ฅ'ω'ฅ"), eventEmit("[Mệnh Định Chi Thi] Script đã tải") };
+$(() => { A(it)() });
